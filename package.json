@@ -1,6 +1,6 @@
 {
   "name": "@aurelle/nestjs-ga4",
-  "version": "1.1.1",
+  "version": "2.0.0",
   "description": "A NestJS module and service that integrate the Google Analytics 4 NodeJS package",
   "private": false,
   "author": "",
@@ -47,7 +47,7 @@
     "typescript": "*"
   },
   "peerDependencies": {
-    "@nestjs/common": "^8.0.0",
+    "@nestjs/common": "^9.0.0",
     "@google-analytics/data": "^3.0.3"
   },
   "jest": {
