@@ -38,12 +38,14 @@ export class MemoryReportCacheProvider extends ReportCacheProvider {
   }
 
   async set (key: string, report: any): Promise<any> {
-    this.memoryStore[key] = {
+    const wrappedValue: WrappedValue = {
       setAtTimestamp: Date.now(),
       value: report
     }
 
-    return this.memoryStore[key].value
+    this.memoryStore[key] = wrappedValue
+
+    return wrappedValue
   }
 
   delete (key: string): void {

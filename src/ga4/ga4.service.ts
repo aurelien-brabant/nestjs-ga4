@@ -50,19 +50,19 @@ export class Ga4Service implements OnModuleInit {
   >(
     report: google.analytics.data.v1beta.IRunReportResponse
   ): T[] {
-    const dimensions = report.dimensionHeaders.map(({ name }) => name)
-    const metrics = report.metricHeaders.map(({ name }) => name)
+    const dimensions = report.dimensionHeaders?.map(({ name }) => name) ?? []
+    const metrics = report.metricHeaders?.map(({ name }) => name) ?? []
 
-    return report.rows.map((row) => ({
-      ...(row.dimensionValues.reduce((acc, cur, index) => ({
+    return report.rows?.map((row) => ({
+      ...(row.dimensionValues?.reduce((acc, cur, index) => ({
         ...acc,
-        [dimensions[index]]: cur.value ?? ''
+        [dimensions[String(index)]]: cur.value ?? ''
       }), {})),
-      ...(row.metricValues.reduce((acc, cur, index) => ({
+      ...(row.metricValues?.reduce((acc, cur, index) => ({
         ...acc,
-        [metrics[index]]: cur.value ?? ''
+        [metrics[String(index)]]: cur.value ?? ''
       }), {}))
-    }) as T)
+    }) as T) ?? []
   }
 
   async runReport (report: google.analytics.data.v1beta.IRunReportRequest, callOptions = {}): Promise<[
