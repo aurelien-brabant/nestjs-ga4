@@ -1,6 +1,6 @@
 {
   "name": "@aurelle/nestjs-ga4",
-  "version": "2.1.0",
+  "version": "2.2.0",
   "description": "A NestJS module and service that integrate the Google Analytics 4 NodeJS package",
   "private": false,
   "author": "",
@@ -15,6 +15,9 @@
     "test:cov": "jest --coverage",
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
     "test:e2e": "jest --config ./test/jest-e2e.json"
+  },
+  "dependencies": {
+    "@google-analytics/data": "^3.0.3"
   },
   "devDependencies": {
     "@google-analytics/data": "^3.0.3",
@@ -47,8 +50,7 @@
     "typescript": "*"
   },
   "peerDependencies": {
-    "@nestjs/common": "^9.0.0",
-    "@google-analytics/data": "^3.0.3"
+    "@nestjs/common": "^9.0.0"
   },
   "jest": {
     "moduleFileExtensions": [
