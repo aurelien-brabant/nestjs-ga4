@@ -6,6 +6,9 @@ export abstract class ReportCacheProvider {
   abstract get (key: string): Promise<any | null>
   abstract set (key: string, report: any): Promise<any | null>
 
+  initialize (): boolean { return true }
+  destroy (): boolean { return true }
+
   /* should be overriden if a more efficient implementation is possible */
   async has (key: string): Promise<boolean> {
     return await this.get(key) !== null

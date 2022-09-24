@@ -1,7 +1,11 @@
+import { readFileSync, writeFileSync } from 'fs'
 import { ReportCacheProvider } from './report-cache-provider'
 
 export interface MemoryReportCacheProviderOptions {
   keyLifetime?: number
+  loadFromFileAtPath?: string
+  saveToFileAtPath?: string
+  resetTimestampsOnLoadFromFile?: boolean
 }
 
 interface WrappedValue {
@@ -9,13 +13,34 @@ interface WrappedValue {
   setAtTimestamp: number
 }
 
+type MemoryStore = Record<string, WrappedValue | undefined>
+
 export class MemoryReportCacheProvider extends ReportCacheProvider {
-  private memoryStore: Record<string, (WrappedValue | undefined)> = {}
+  private memoryStore: MemoryStore = {}
 
   constructor (
     private readonly config: MemoryReportCacheProviderOptions = {}
   ) {
     super(MemoryReportCacheProvider.name)
+  }
+
+  public initialize (): boolean {
+    if (typeof this.config.loadFromFileAtPath === 'undefined') {
+      return false
+    }
+
+    const buf = readFileSync(this.config.loadFromFileAtPath)
+    const memoryStore = JSON.parse(buf.toString()) as MemoryStore
+
+    if (this.config.resetTimestampsOnLoadFromFile === true) {
+      for (const wrappedValue of Object.values(memoryStore)) {
+        (wrappedValue as WrappedValue).setAtTimestamp = Date.now()
+      }
+    }
+
+    this.memoryStore = memoryStore
+
+    return true
   }
 
   async get (key: string): Promise<any> {
@@ -48,7 +73,19 @@ export class MemoryReportCacheProvider extends ReportCacheProvider {
     return wrappedValue
   }
 
+  public destroy (): boolean {
+    if (typeof this.config.saveToFileAtPath === 'string') {
+      writeFileSync(this.config.saveToFileAtPath, JSON.stringify(this.memoryStore))
+
+      return true
+    }
+
+    return false
+  }
+
   delete (key: string): void {
-    this.memoryStore[key] = undefined
+    const { [key]: _, ...cleanedStore } = this.memoryStore
+
+    this.memoryStore = cleanedStore
   }
 }

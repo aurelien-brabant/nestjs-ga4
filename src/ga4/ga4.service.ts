@@ -1,12 +1,12 @@
 import { BetaAnalyticsDataClient } from '@google-analytics/data'
 import { google } from '@google-analytics/data/build/protos/protos'
-import { Injectable, Logger, OnModuleInit } from '@nestjs/common'
+import { Injectable, Logger, OnModuleDestroy, OnModuleInit } from '@nestjs/common'
 import { createHash } from 'crypto'
 import { ReportCacheProvider } from '../report-cache-provider/report-cache-provider'
 import { Ga4ModuleConfig } from './interfaces'
 
 @Injectable()
-export class Ga4Service implements OnModuleInit {
+export class Ga4Service implements OnModuleInit, OnModuleDestroy {
   private readonly logger = new Logger(Ga4Service.name)
   private readonly reportCacheProvider?: ReportCacheProvider
   private readonly defaultPropertyId?: string
@@ -18,11 +18,20 @@ export class Ga4Service implements OnModuleInit {
   ) {
     this.reportCacheProvider = moduleConfiguration.reportCacheProvider
     this.defaultPropertyId = moduleConfiguration.defaultPropertyId
-    this.enableDynamicCachingLogs = typeof moduleConfiguration.enableDynamicCachingLogs !== 'undefined' && this.enableDynamicCachingLogs
+    this.enableDynamicCachingLogs = typeof moduleConfiguration.enableDynamicCachingLogs !== 'undefined' && moduleConfiguration.enableDynamicCachingLogs
+  }
+
+  onModuleDestroy (): void {
+    if (
+      typeof this.reportCacheProvider !== 'undefined'
+    ) {
+      this.reportCacheProvider.destroy()
+    }
   }
 
   public onModuleInit (): void {
-    if (this.reportCacheProvider != null) {
+    if (typeof this.reportCacheProvider !== 'undefined') {
+      this.reportCacheProvider.initialize()
       this.logger.verbose(`Using ${this.reportCacheProvider.getProviderName()} to cache reports.`)
     }
   }
