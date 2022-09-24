@@ -3,18 +3,23 @@ import { google } from '@google-analytics/data/build/protos/protos'
 import { Injectable, Logger, OnModuleInit } from '@nestjs/common'
 import { createHash } from 'crypto'
 import { ReportCacheProvider } from '../report-cache-provider/report-cache-provider'
+import { Ga4ModuleConfig } from './interfaces'
 
 @Injectable()
 export class Ga4Service implements OnModuleInit {
   private readonly logger = new Logger(Ga4Service.name)
+  private readonly reportCacheProvider: ReportCacheProvider | undefined
+  private readonly defaultPropertyId: string | undefined
 
   constructor (
     public readonly analyticsDataClient: BetaAnalyticsDataClient,
-    private readonly reportCacheProvider?: ReportCacheProvider
+    moduleConfiguration: Ga4ModuleConfig
   ) {
+    this.reportCacheProvider = moduleConfiguration.reportCacheProvider
+    this.defaultPropertyId = moduleConfiguration.defaultPropertyId
   }
 
-  onModuleInit (): void {
+  public onModuleInit (): void {
     if (this.reportCacheProvider != null) {
       this.logger.verbose(`Using ${this.reportCacheProvider.getProviderName()} to cache reports.`)
     }
@@ -45,6 +50,19 @@ export class Ga4Service implements OnModuleInit {
     return reportResponse
   }
 
+  private applyDefaultPropertyToReport (
+    report: google.analytics.data.v1beta.IRunReportRequest | google.analytics.data.v1beta.IBatchRunReportsRequest
+  ): void {
+    const hasReportProperty = typeof report.property === 'string'
+
+    if (!hasReportProperty) {
+      if (typeof this.defaultPropertyId === 'undefined') {
+        throw new Error('No property was specified in the report request, and no default property ID was set.')
+      }
+      report.property = `properties/${this.defaultPropertyId}`
+    }
+  }
+
   mapDimensionsToMetrics<
     T extends Record<string, string> = Record<string, string>
   >(
@@ -65,11 +83,13 @@ export class Ga4Service implements OnModuleInit {
     }) as T) ?? []
   }
 
-  async runReport (report: google.analytics.data.v1beta.IRunReportRequest, callOptions = {}): Promise<[
+  async runReport (report: google.analytics.data.v1beta.IRunReportRequest & { property?: string }, callOptions = {}): Promise<[
     google.analytics.data.v1beta.IRunReportResponse,
     google.analytics.data.v1beta.IRunReportRequest | undefined,
     {} | undefined
   ]> {
+    this.applyDefaultPropertyToReport(report)
+
     return await this.getReportFromCacheOrRequest(
       report,
       async () => await this.analyticsDataClient.runReport(report, callOptions)
@@ -81,6 +101,8 @@ export class Ga4Service implements OnModuleInit {
     google.analytics.data.v1beta.IBatchRunReportsRequest | undefined,
     {} | undefined
   ]> {
+    this.applyDefaultPropertyToReport(report)
+
     return await this.getReportFromCacheOrRequest(
       report,
       async () => await this.runBatchReport(report, callOptions)

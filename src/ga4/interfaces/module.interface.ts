@@ -3,6 +3,7 @@ import { ReportCacheProvider } from 'src/report-cache-provider/report-cache-prov
 export interface Ga4ModuleConfig {
   pathToCredentials: string
   reportCacheProvider?: ReportCacheProvider
+  defaultPropertyId?: string
 }
 
 export interface AsyncGa4ModuleConfig {

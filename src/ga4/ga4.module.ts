@@ -27,18 +27,18 @@ export class Ga4Module {
         provide: Ga4Service,
         inject: asyncGa4ModuleConfig.inject ?? [],
         useFactory: async (...args) => {
-          const { pathToCredentials, reportCacheProvider } = await asyncGa4ModuleConfig.useFactory(...args)
+          const config = await asyncGa4ModuleConfig.useFactory(...args)
 
           return new Ga4Service(
-            this.makeDataClient(pathToCredentials),
-            reportCacheProvider
+            this.makeDataClient(config.pathToCredentials),
+            config
           )
         }
       }]
     }
   }
 
-  public static forRoot ({ pathToCredentials, reportCacheProvider }: Ga4ModuleConfig): DynamicModule {
+  public static forRoot (config: Ga4ModuleConfig): DynamicModule {
     return {
       module: Ga4Module,
       imports: [],
@@ -47,8 +47,8 @@ export class Ga4Module {
         {
           provide: Ga4Service,
           useFactory: () => new Ga4Service(
-            this.makeDataClient(pathToCredentials),
-            reportCacheProvider
+            this.makeDataClient(config.pathToCredentials),
+            config
           )
         }
       ]
