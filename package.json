@@ -1,6 +1,6 @@
 {
   "name": "@aurelle/nestjs-ga4",
-  "version": "2.0.0",
+  "version": "2.1.0",
   "description": "A NestJS module and service that integrate the Google Analytics 4 NodeJS package",
   "private": false,
   "author": "",

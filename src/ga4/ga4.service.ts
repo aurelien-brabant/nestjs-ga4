@@ -8,15 +8,17 @@ import { Ga4ModuleConfig } from './interfaces'
 @Injectable()
 export class Ga4Service implements OnModuleInit {
   private readonly logger = new Logger(Ga4Service.name)
-  private readonly reportCacheProvider: ReportCacheProvider | undefined
-  private readonly defaultPropertyId: string | undefined
+  private readonly reportCacheProvider?: ReportCacheProvider
+  private readonly defaultPropertyId?: string
+  private readonly enableDynamicCachingLogs: boolean
 
   constructor (
-    public readonly analyticsDataClient: BetaAnalyticsDataClient,
+    private readonly analyticsDataClient: BetaAnalyticsDataClient,
     moduleConfiguration: Ga4ModuleConfig
   ) {
     this.reportCacheProvider = moduleConfiguration.reportCacheProvider
     this.defaultPropertyId = moduleConfiguration.defaultPropertyId
+    this.enableDynamicCachingLogs = typeof moduleConfiguration.enableDynamicCachingLogs !== 'undefined' && this.enableDynamicCachingLogs
   }
 
   public onModuleInit (): void {
@@ -35,7 +37,9 @@ export class Ga4Service implements OnModuleInit {
     if (typeof this.reportCacheProvider !== 'undefined' && await this.reportCacheProvider.has(reportHash)) {
       const cachedReportResponse = await this.reportCacheProvider.get(reportHash)
 
-      this.logger.verbose(`report ${reportHash} served from cache.`)
+      if (this.enableDynamicCachingLogs) {
+        this.logger.verbose(`report ${reportHash} served from cache.`)
+      }
 
       return cachedReportResponse
     }
@@ -44,7 +48,9 @@ export class Ga4Service implements OnModuleInit {
 
     if (this.reportCacheProvider != null) {
       await this.reportCacheProvider.set(reportHash, reportResponse)
-      this.logger.verbose(`report ${reportHash} has been cached.`)
+      if (this.enableDynamicCachingLogs) {
+        this.logger.verbose(`report ${reportHash} has been cached.`)
+      }
     }
 
     return reportResponse

@@ -4,6 +4,7 @@ export interface Ga4ModuleConfig {
   pathToCredentials: string
   reportCacheProvider?: ReportCacheProvider
   defaultPropertyId?: string
+  enableDynamicCachingLogs?: boolean
 }
 
 export interface AsyncGa4ModuleConfig {
