@@ -1,53 +1,52 @@
-import { ReportCacheProvider } from "./report-cache-provider";
+import { ReportCacheProvider } from './report-cache-provider'
 
 export interface MemoryReportCacheProviderOptions {
-    keyLifetime?: number;
+  keyLifetime?: number
 }
 
 interface WrappedValue {
-    value: any;
-    setAtTimestamp: number;
+  value: any
+  setAtTimestamp: number
 }
 
 export class MemoryReportCacheProvider extends ReportCacheProvider {
-    private memoryStore: Record<string, WrappedValue> = {};
+  private memoryStore: Record<string, (WrappedValue | undefined)> = {}
 
-    constructor(
-        private readonly config: MemoryReportCacheProviderOptions = {}
+  constructor (
+    private readonly config: MemoryReportCacheProviderOptions = {}
+  ) {
+    super(MemoryReportCacheProvider.name)
+  }
+
+  async get (key: string): Promise<any> {
+    const wrappedValue = this.memoryStore[key]
+
+    if (typeof wrappedValue === 'undefined') {
+      return null
+    }
+
+    if (
+      typeof this.config.keyLifetime === 'number' &&
+            Date.now() - wrappedValue.setAtTimestamp > this.config.keyLifetime * 1000
     ) {
-        super(MemoryReportCacheProvider.name);
+      this.delete(key)
+
+      return null
     }
 
-    get(key: string): Promise<any> {
-        const wrappedValue = this.memoryStore[key];
+    return wrappedValue.value ?? null
+  }
 
-        if (!wrappedValue) {
-            return null;
-        }
-
-        if (
-            this.config.keyLifetime
-            && Date.now() - wrappedValue.setAtTimestamp > this.config.keyLifetime * 1000
-        ) {
-            this.delete(key);
-
-            return null;
-        }
-
-        return wrappedValue.value ?? null;
+  async set (key: string, report: any): Promise<any> {
+    this.memoryStore[key] = {
+      setAtTimestamp: Date.now(),
+      value: report
     }
 
-    set(key: string, report: any): Promise<any> {
-        this.memoryStore[key] = {
-            setAtTimestamp: Date.now(),
-            value: report
-        };
+    return this.memoryStore[key].value
+  }
 
-        return this.memoryStore[key].value;
-    }
-
-
-    delete(key: string): void {
-        delete this.memoryStore[key];
-    }
+  delete (key: string): void {
+    this.memoryStore[key] = undefined
+  }
 }
