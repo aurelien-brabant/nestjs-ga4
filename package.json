@@ -16,10 +16,8 @@
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
     "test:e2e": "jest --config ./test/jest-e2e.json"
   },
-  "dependencies": {
-    "@google-analytics/data": "^3.0.0"
-  },
   "devDependencies": {
+    "@google-analytics/data": "^3.0.3",
     "@nestjs/cli": "^9.0.0",
     "@nestjs/common": "^9.0.9",
     "@nestjs/schematics": "^9.0.0",
