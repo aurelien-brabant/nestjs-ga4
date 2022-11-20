@@ -1,6 +1,6 @@
 export interface Ga4ModuleConfig {
   pathToCredentials: string
-  disableCaching: boolean
+  disableCaching?: boolean
   defaultPropertyId?: string
   enableDynamicCachingLogs?: boolean
 }
