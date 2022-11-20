@@ -12,6 +12,7 @@ module.exports = {
     project: './tsconfig.json'
   },
   rules: {
-    '@typescript-eslint/consistent-type-assertions': 0
+    '@typescript-eslint/consistent-type-assertions': 'off',
+    '@typescript-eslint/strict-boolean-expressions': 'off'
   }
 }

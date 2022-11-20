@@ -1,8 +1,6 @@
-import { ReportCacheProvider } from 'src/report-cache-provider/report-cache-provider'
-
 export interface Ga4ModuleConfig {
   pathToCredentials: string
-  reportCacheProvider?: ReportCacheProvider
+  disableCaching: boolean
   defaultPropertyId?: string
   enableDynamicCachingLogs?: boolean
 }

@@ -1,39 +1,26 @@
 import { BetaAnalyticsDataClient } from '@google-analytics/data'
 import { google } from '@google-analytics/data/build/protos/protos'
-import { Injectable, Logger, OnModuleDestroy, OnModuleInit } from '@nestjs/common'
+import { Injectable, Logger } from '@nestjs/common'
 import { createHash } from 'crypto'
-import { ReportCacheProvider } from '../report-cache-provider/report-cache-provider'
 import { Ga4ModuleConfig } from './interfaces'
+import NodeCache from 'node-cache'
 
 @Injectable()
-export class Ga4Service implements OnModuleInit, OnModuleDestroy {
+export class Ga4Service {
   private readonly logger = new Logger(Ga4Service.name)
-  private readonly reportCacheProvider?: ReportCacheProvider
   private readonly defaultPropertyId?: string
   private readonly enableDynamicCachingLogs: boolean
+  private readonly cache: NodeCache | null = null
 
   constructor (
     private readonly analyticsDataClient: BetaAnalyticsDataClient,
     moduleConfiguration: Ga4ModuleConfig
   ) {
-    this.reportCacheProvider = moduleConfiguration.reportCacheProvider
+    if (!moduleConfiguration.disableCaching) {
+      this.cache = new NodeCache()
+    }
     this.defaultPropertyId = moduleConfiguration.defaultPropertyId
     this.enableDynamicCachingLogs = typeof moduleConfiguration.enableDynamicCachingLogs !== 'undefined' && moduleConfiguration.enableDynamicCachingLogs
-  }
-
-  onModuleDestroy (): void {
-    if (
-      typeof this.reportCacheProvider !== 'undefined'
-    ) {
-      this.reportCacheProvider.destroy()
-    }
-  }
-
-  public onModuleInit (): void {
-    if (typeof this.reportCacheProvider !== 'undefined') {
-      this.reportCacheProvider.initialize()
-      this.logger.verbose(`Using ${this.reportCacheProvider.getProviderName()} to cache reports.`)
-    }
   }
 
   private hashReportRequest (reportRequest: any): string {
@@ -43,8 +30,8 @@ export class Ga4Service implements OnModuleInit, OnModuleDestroy {
   private async getReportFromCacheOrRequest (report: any, request: () => Promise<any>): Promise<any> {
     const reportHash = this.hashReportRequest(report)
 
-    if (typeof this.reportCacheProvider !== 'undefined' && await this.reportCacheProvider.has(reportHash)) {
-      const cachedReportResponse = await this.reportCacheProvider.get(reportHash)
+    if (this.cache?.has(reportHash)) {
+      const cachedReportResponse = await this.cache.get(reportHash)
 
       if (this.enableDynamicCachingLogs) {
         this.logger.verbose(`report ${reportHash} served from cache.`)
@@ -55,8 +42,8 @@ export class Ga4Service implements OnModuleInit, OnModuleDestroy {
 
     const reportResponse = await request()
 
-    if (this.reportCacheProvider != null) {
-      await this.reportCacheProvider.set(reportHash, reportResponse)
+    if (this.cache != null) {
+      this.cache.set(reportHash, reportResponse)
       if (this.enableDynamicCachingLogs) {
         this.logger.verbose(`report ${reportHash} has been cached.`)
       }

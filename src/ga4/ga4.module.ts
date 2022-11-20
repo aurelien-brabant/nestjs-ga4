@@ -8,11 +8,10 @@ import { AsyncGa4ModuleConfig, Ga4ModuleConfig } from './interfaces'
 export class Ga4Module {
   private static readonly makeDataClient = (pathToCredentials: string): BetaAnalyticsDataClient => {
     const credentials = JSON.parse(readFileSync(pathToCredentials).toString())
-    const analyticsDataClient = new BetaAnalyticsDataClient({
+
+    return new BetaAnalyticsDataClient({
       credentials
     })
-
-    return analyticsDataClient
   }
 
   public static forRootAsync (asyncGa4ModuleConfig: AsyncGa4ModuleConfig): DynamicModule {
